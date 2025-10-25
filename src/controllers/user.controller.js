@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
 const getAccessRefreshTokens = async (userId) => {
@@ -150,4 +151,39 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User Logged Out"));
 });
 
-export { registerUser, loginUser, logoutUser };
+// to get new access token if expired
+const getRefreshAccessToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken =
+    req.cookies?.refreshToken || req.body?.refreshToken;
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, "Unauthorized Request");
+  }
+  try {
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+    const user = await User.findById(decodedToken?._id);
+    if (!user) {
+      throw new ApiError(401, "Invalid Refresh Token");
+    }
+
+    if (incomingRefreshToken !== user.refreshToken) {
+      throw new ApiError(401, "Refresh Token Tampered/used or Expired");
+    }
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+    const { accessToken: newAt, refreshToken: newRt } =
+      await getAccessRefreshTokens(user._id);
+    return res
+      .status(200)
+      .cookie("accessToken", newAt, options)
+      .cookie("refreshToken", newRt, options)
+      .json(new ApiResponse(200, { newAt, newRt }, "Access Token Refreshed"));
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid refresh token yo");
+  }
+});
+export { registerUser, loginUser, logoutUser, getRefreshAccessToken };
