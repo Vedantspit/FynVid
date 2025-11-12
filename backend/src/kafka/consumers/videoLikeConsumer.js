@@ -26,7 +26,7 @@ export const runVideoLikeConsumer = async () => {
             sender: userId,
             type: "LIKE",
             video: videoId,
-            message: personalMsg || "like your video",
+            message: "liked your video",
           });
           console.log(
             `🔔 Notification created: User ${userId} liked ${videoId}`

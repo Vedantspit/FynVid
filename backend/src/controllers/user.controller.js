@@ -109,11 +109,11 @@ const loginUser = asyncHandler(async (req, res) => {
   //   "-password -refreshToken"
   // );
   const safeUser = user.toObject();
-  console.log("Safe user before deleting password", safeUser);
+  // console.log("Safe user before deleting password", safeUser);
 
   delete safeUser.password;
   delete safeUser.refreshToken;
-  console.log("Safe user ", safeUser);
+  // console.log("Safe user ", safeUser);
 
   const options = {
     httpOnly: true,
@@ -382,7 +382,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     path: "owner",
     select: "fullName userName avatar",
   });
-  console.log("Videos fetched raw", videos1);
+  // console.log("Videos fetched raw", videos1);
 
   const videos = await Video.find({ _id: { $in: ids } })
     .populate({
@@ -390,17 +390,17 @@ const getWatchHistory = asyncHandler(async (req, res) => {
       select: "fullName userName avatar",
     })
     .lean();
-  console.log("Videos fetched applied lean", videos);
+  // console.log("Videos fetched applied lean", videos);
 
   const byId = new Map(videos.map((v) => [String(v._id), v]));
-  console.log("Created map, to map ids to complete video info", byId);
+  // console.log("Created map, to map ids to complete video info", byId);
 
   // Order by most recent first (end of array is most recent)
   const ordered = [...ids]
     .reverse()
     .map((oid) => byId.get(String(oid)))
     .filter(Boolean);
-  console.log("Final Ordered Watch History", ordered);
+  // console.log("Final Ordered Watch History", ordered);
 
   return res
     .status(200)

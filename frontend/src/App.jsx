@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
@@ -19,13 +20,23 @@ import Notification from "./pages/Notification";
 import "./App.css";
 
 function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Navbar />
-        <div className="max-w-7xl mx-auto flex">
-          <Sidebar />
-          <main className="flex-1 min-h-[calc(100vh-57px)]">
+        <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        <div className="max-w-7xl mx-auto flex relative">
+          <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          {/* Overlay for mobile */}
+          {sidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/40 z-20 md:hidden"
+              onClick={() => setSidebarOpen(false)}
+            ></div>
+          )}
+
+          <main className="flex-1 min-h-[calc(100vh-57px)] z-10">
             <Routes>
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<Home />} />

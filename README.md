@@ -1,7 +1,7 @@
-# 🎬 FynVid
+# FynVid
 
 <p align="center">
-  <img src="./frontend/public/logof.png" alt="FynVid Logo" width="160"/>
+  <img src="logof.png" alt="FynVid Logo" width="160"/>
 </p>
 
 FynVid is a full-stack video streaming platform inspired by YouTube, built using the **MERN** stack with **Kafka** integration for scalability and asynchronous processing.
@@ -12,7 +12,7 @@ FynVid is a full-stack video streaming platform inspired by YouTube, built using
 
 ### 🖥️ Frontend
 
-- **React.js (Vite)** for a fast, modern UI
+- **React.js** for a fast, modern UI
 - **Tailwind CSS** for styling
 - **React Router** for navigation
 - **Context API** for authentication & state management
@@ -26,11 +26,18 @@ FynVid is a full-stack video streaming platform inspired by YouTube, built using
 
 ---
 
+## System Architecture
+
+<p align="center">
+  <img src="SystemArchitecture.png" alt="SystemArchitecture" width="160"/>
+</p>
+---
+
 ## ⚡ Features
 
 ### 👤 User System
 
-- Register and login users securely using JWT
+- Register and login securely using JWT
 - Update profile info, avatar, and cover image
 
 ### 🎞️ Video Management
@@ -47,7 +54,7 @@ FynVid is a full-stack video streaming platform inspired by YouTube, built using
 ### ❤️ Likes & Comments
 
 - Real-time updates on likes and comments
-- **Kafka producers** trigger events for notifications when users interact with videos
+- **Kafka producers** trigger notification events when users interact with videos
 
 ### 🔔 Notifications
 
@@ -68,16 +75,16 @@ FynVid is a full-stack video streaming platform inspired by YouTube, built using
 
 ---
 
-## 🧩 Kafka Integration
+## Kafka Integration
 
 FynVid uses **Kafka** to decouple event generation from processing, ensuring scalability and responsiveness.
 
-### 🧠 Why We Use Kafka
+### Why We Use Kafka
 
-- **Scalability:** Can handle a massive number of events (likes, comments, views) concurrently.
-- **Decoupling:** Producers don’t wait for consumers, improving app response time.
-- **Reliability:** Ensures no data loss even if a service temporarily fails.
-- **Extensibility:** New services can listen to the same events easily.
+- **Scalability:** Handles a massive number of concurrent events (likes, comments, views).
+- **Decoupling:** Producers don’t wait for consumers, improving response time.
+- **Reliability:** Prevents data loss even if a service temporarily fails.
+- **Extensibility:** New services can easily subscribe to the same event streams.
 
 ### Kafka Consumers in FynVid
 
@@ -88,11 +95,28 @@ FynVid uses **Kafka** to decouple event generation from processing, ensuring sca
 | **Comments Consumer**     | Listens to comment events and creates notifications       |
 | **Subscription Consumer** | Handles subscriber events and generates notifications     |
 
-> Except for **video views**, the Kafka consumers primarily handle **notification creation**, while the database insertion for likes, comments, and subscriptions happens in the respective controllers at the time of action.
+> Except for **video views**, the Kafka consumers primarily handle **notification creation**, while the database insertions for likes, comments, and subscriptions happen directly in the controller.
 
 ---
 
-## 🛠️ Installation
+## Docker Setup
+
+You can quickly start **Kafka**, **Zookeeper**, and **Kafka UI** using Docker Compose.
+
+```bash
+docker-compose up -d
+```
+
+This will start:
+
+- ⚙️ **Kafka Broker** at port **9092**
+- 📊 **Kafka UI** at port **8089**
+
+You can access the Kafka UI at **http://localhost:8089**
+
+---
+
+## Manual Setup (Optional)
 
 ### Clone the repository
 
@@ -117,7 +141,7 @@ npm install
 
 ### Environment variables
 
-Create a `.env` file in the backend directory with:
+Create a `.env` file inside the **backend** directory with:
 
 ```
 MONGO_URI=your_mongo_connection_string
@@ -127,11 +151,9 @@ FRONTEND_URL=http://localhost:5173
 PORT=8000
 ```
 
-### Start services
+### Start backend
 
 ```bash
-# Start Kafka and Zookeeper (using Docker or local setup)
-# Then run:
 npm run dev
 ```
 
@@ -143,7 +165,7 @@ npm run dev
 
 ---
 
-## 🧠 Architecture Overview
+## Architecture Overview
 
 ```text
 Frontend (React)
@@ -159,11 +181,10 @@ Consumers (Async Processing)
 
 ---
 
-## 🧑‍💻 Author
+## Author
 
 **Vedant Deshmukh**  
-💼 [GitHub](https://github.com/Vedantspit)  
-🎓 Software Devloper | AI/ML Enthusiast
+Software Developer | AI/ML Enthusiast
 
 ---
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { endpoints } from "../api/client";
 import VideoGrid from "../components/VideoGrid";
+import VideoList from "../components/VideoList"; // ✅ Added for phone view
 
 export default function Dashboard() {
   const { api } = useAuth();
@@ -26,7 +27,7 @@ export default function Dashboard() {
         setVideos(v?.data?.videos || v?.data || []);
       } catch {}
     })();
-  }, []);
+  }, [api]);
 
   return (
     <div className="p-4 space-y-6">
@@ -45,7 +46,16 @@ export default function Dashboard() {
       {/* Videos section */}
       <div>
         <div className="text-xl font-semibold mb-3">Your uploads</div>
-        <VideoGrid videos={videos} />
+
+        {/* ✅ Mobile view - stacked list */}
+        <div className="block sm:hidden">
+          <VideoList videos={videos} />
+        </div>
+
+        {/* ✅ Desktop / Tablet view - grid */}
+        <div className="hidden sm:block">
+          <VideoGrid videos={videos} />
+        </div>
       </div>
     </div>
   );

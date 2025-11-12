@@ -17,12 +17,12 @@ export default function Notification() {
       setLoading(true);
       const res = await api.request(endpoints.getNotify());
       const data =
-        res?.data?.data || res?.data || (Array.isArray(res) ? res : null);
+        res?.data?.data || res?.data || (Array.isArray(res) ? res : []);
 
       if (Array.isArray(data)) {
         setNotifications(data);
 
-        // 🟢 Mark all unread as read
+        // ✅ Mark all unread as read when user opens Notifications page
         const unread = data.filter((n) => !n.isRead);
         if (unread.length > 0) {
           await api.request(endpoints.markAllNotificationsRead(), {
@@ -50,7 +50,6 @@ export default function Notification() {
   return (
     <div className="p-4 space-y-3">
       <h2 className="text-xl font-semibold mb-4">Notifications</h2>
-
       {notifications.map((n) => (
         <div
           key={n._id}
@@ -63,7 +62,6 @@ export default function Notification() {
             alt="avatar"
             className="w-10 h-10 rounded-full object-cover"
           />
-
           <div className="flex-1">
             <p className="text-gray-800 text-sm leading-snug">
               <strong>{n.sender?.fullName || "Someone"}</strong>{" "}
