@@ -8,16 +8,16 @@ FynVid is a full-stack video streaming platform inspired by YouTube, built using
 
 ---
 
-## 🚀 Tech Stack
+## Tech Stack
 
-### 🖥️ Frontend
+### Frontend
 
 - **React.js** for a fast, modern UI
 - **Tailwind CSS** for styling
 - **React Router** for navigation
 - **Context API** for authentication & state management
 
-### ⚙️ Backend
+### Backend
 
 - **Node.js** + **Express.js** for RESTful APIs
 - **MongoDB (Mongoose)** for database management
@@ -29,34 +29,33 @@ FynVid is a full-stack video streaming platform inspired by YouTube, built using
 ## System Architecture
 
 <p align="center">
-  <img src="SystemArchitecture.png" alt="SystemArchitecture" width="160"/>
+  <img src="SystemArchitecture.png" alt="System Architecture" width="800"/>
 </p>
----
 
-## ⚡ Features
+## Features
 
-### 👤 User System
+### User System
 
 - Register and login securely using JWT
 - Update profile info, avatar, and cover image
 
-### 🎞️ Video Management
+### Video Management
 
 - Upload and manage videos
 - Like, comment, and view videos
 - Each **view event** is processed asynchronously via Kafka for scalability
 
-### 📁 Playlists
+### Playlists
 
 - Create, update, and delete playlists
 - Add or remove videos from playlists
 
-### ❤️ Likes & Comments
+### Likes & Comments
 
 - Real-time updates on likes and comments
 - **Kafka producers** trigger notification events when users interact with videos
 
-### 🔔 Notifications
+### Notifications
 
 - Get notified when:
   - Someone likes your video
@@ -64,12 +63,12 @@ FynVid is a full-stack video streaming platform inspired by YouTube, built using
   - Someone subscribes to your channel
 - **Kafka consumers** handle these events and create notifications efficiently
 
-### 👥 Subscriptions
+### Subscriptions
 
 - Subscribe/unsubscribe to channels
 - View content from subscribed creators
 
-### 📊 Dashboard
+### Dashboard
 
 - Track uploaded videos and performance metrics
 
