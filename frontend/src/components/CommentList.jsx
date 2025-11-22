@@ -6,31 +6,50 @@ import CommentLikeButton from "./CommentLikeButton";
 export function CommentForm({ videoId, onAdded }) {
   const { api } = useAuth();
   const [text, setText] = useState("");
+  const [error, setError] = useState("");
 
   const submit = async (e) => {
     e.preventDefault();
     if (!text.trim()) return;
+
+    setError("");
+
     try {
       await api.request(endpoints.comments(videoId), {
         method: "POST",
         body: { content: text },
       });
+
       setText("");
       onAdded?.();
-    } catch {}
+    } catch (err) {
+      console.error("Error adding comment:", err);
+
+      // Express-rate-limit sends 429 but you’re not getting .status from err
+      // So rely on message instead:
+      if (err.message?.toLowerCase().includes("too many")) {
+        setError("You are commenting too quickly. Please slow down!");
+      } else {
+        setError(err.message || "Failed to add comment. Try again later.");
+      }
+    }
   };
 
   return (
-    <form onSubmit={submit} className="flex gap-2">
-      <input
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Add a comment"
-        className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
-      />
-      <button className="px-4 py-2 rounded bg-gray-900 text-white cursor-pointer hover:bg-gray-800">
-        Comment
-      </button>
+    <form onSubmit={submit} className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Add a comment"
+          className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
+        />
+        <button className="px-4 py-2 rounded bg-gray-900 text-white cursor-pointer hover:bg-gray-800">
+          Comment
+        </button>
+      </div>
+
+      {error && <p className="text-red-800 text-sm mt-1 font-bold">{error}</p>}
     </form>
   );
 }

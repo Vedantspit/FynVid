@@ -1,1 +1,1 @@
-export const DB_NAME = "fynvid";
+export const DB_NAME = "fynvid_deploy";

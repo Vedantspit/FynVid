@@ -14,6 +14,7 @@ import {
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.js";
 import { verifyJWT } from "../middlewares/auth.js";
+import rateLimit from "express-rate-limit";
 const router = Router();
 
 router.post(
@@ -27,8 +28,14 @@ router.post(
   ]),
   registerUser
 );
-
-router.post("/login", loginUser);
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 20,
+  message: { error: "Too many login attempts, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+router.post("/login", loginLimiter, loginUser);
 router.post("/refresh-token", getRefreshAccessToken);
 
 //secured routes

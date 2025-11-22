@@ -125,21 +125,15 @@ const loginUser = asyncHandler(async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     })
     .cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     })
-    .json(
-      new ApiResponse(
-        200,
-        { user: safeUser, accessToken, refreshToken },
-        "User loggedin Success"
-      )
-    );
+    .json(new ApiResponse(200, { user: safeUser }, "User loggedin Success"));
 });
 const logoutUser = asyncHandler(async (req, res) => {
   //we created auth.js middleware because we wanted which user we want to delete, we cant have a form based input
@@ -195,13 +189,13 @@ const getRefreshAccessToken = asyncHandler(async (req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
-        maxAge: 1 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: 1 * 24 * 60 * 60 * 1000, // 1 days
       })
       .cookie("refreshToken", newRt, {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 30 days
+        maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
       })
       .json(new ApiResponse(200, { newAt, newRt }, "Access Token Refreshed"));
   } catch (error) {

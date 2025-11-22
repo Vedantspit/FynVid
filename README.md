@@ -143,11 +143,15 @@ npm install
 Create a `.env` file inside the **backend** directory with:
 
 ```
-MONGO_URI=your_mongo_connection_string
-JWT_SECRET=your_secret_key
-KAFKA_BROKER=localhost:9092
-FRONTEND_URL=http://localhost:5173
-PORT=8000
+MONGO_URL=your_mongo_connection_string
+CORS_ORIGIN=frontend_URL
+ACCESS_TOKEN_SECRET=your_secret_key
+ACCESS_TOKEN_EXPIRY=duration
+REFRESH_TOKEN_SECRET=your_secret_key
+REFRESH_TOKEN_EXPIRY=duration
+CLOUD_NAME=cloudinary_cloud_name
+CLOUD_KEY=cloudinary_cloud_key
+CLOUD_SECRET=i-cloudinary_secret
 ```
 
 ### Start backend
@@ -177,16 +181,3 @@ Kafka (Event Queue)
       ↓
 Consumers (Async Processing)
 ```
-
----
-
-## Author
-
-**Vedant Deshmukh**  
-Software Developer | AI/ML Enthusiast
-
----
-
-## 🏁 License
-
-MIT License © 2025 Vedant Deshmukh
