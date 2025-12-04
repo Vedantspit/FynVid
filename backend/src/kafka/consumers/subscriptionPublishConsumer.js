@@ -13,7 +13,7 @@ export const runPublishSubscriptionConsumer = async () => {
     topic: "fynvid-subscription",
     fromBeginning: false,
   });
-  // For analytics only
+  // For Notiication
   await consumer.run({
     eachMessage: async ({ message }) => {
       const {

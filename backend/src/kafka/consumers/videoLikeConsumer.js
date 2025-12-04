@@ -11,7 +11,8 @@ export const runVideoLikeConsumer = async () => {
     topic: "fynvid-video-like",
     fromBeginning: false,
   });
-  // For analytics only
+  // For Notiication
+
   await consumer.run({
     eachMessage: async ({ message }) => {
       const { videoId, userId, personalMsg, timestamp } = JSON.parse(

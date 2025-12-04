@@ -5,8 +5,7 @@ export const connectProducer = async () => {
   await producer.connect();
   console.log("✅ Kafka Producer connected");
 };
-
-// Publish a video view event
+// producer function for Video View Event
 const publishVideoViewEvent = async (videoId, userId) => {
   try {
     await producer.send({
@@ -25,7 +24,7 @@ const publishVideoViewEvent = async (videoId, userId) => {
     console.error("❌ Error publishing video view event:", error);
   }
 };
-
+// producer for sending Video Liked info
 const publishVideoLikeEvent = async (videoId, userId, message) => {
   try {
     await producer.send({
@@ -46,6 +45,7 @@ const publishVideoLikeEvent = async (videoId, userId, message) => {
   }
 };
 
+// producer for sending someone added Comment on Owners Video
 const videoCommentAddEvent = async (videoId, userId, commentId, content) => {
   try {
     await producer.send({
@@ -67,6 +67,7 @@ const videoCommentAddEvent = async (videoId, userId, commentId, content) => {
   }
 };
 
+// producer for sending someone subscribed to Owners Channel
 const publishSubscriptionEvent = async (subscriberId, channelId, action) => {
   try {
     await producer.send({
@@ -82,7 +83,7 @@ const publishSubscriptionEvent = async (subscriberId, channelId, action) => {
         },
       ],
     });
-    console.log(`📨 Published ${action} event for channel ${channelId}`);
+    console.log(`💡Published ${action} event for channel ${channelId}`);
   } catch (error) {
     console.error("❌ Error publishing subscription event:", error);
   }

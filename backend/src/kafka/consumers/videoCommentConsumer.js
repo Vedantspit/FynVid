@@ -18,6 +18,7 @@ export const runVideoCommentConsumer = async () => {
       const { videoId, userId, commentId, content } = JSON.parse(
         message.value.toString()
       );
+      // For Notiication
 
       try {
         const video = await Video.findById(videoId);
