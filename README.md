@@ -4,7 +4,7 @@
   <img src="logof.png" alt="FynVid Logo" width="160"/>
 </p>
 
-FynVid is a full-stack video streaming platform inspired by YouTube, built using the **MERN** stack with **Kafka** integration for scalability and asynchronous processing.
+FynVid is a full-stack video streaming platform inspired by YouTube, built using the **MERN** stack with **Kafka** integration for scalability and asynchronous processing. The platform also includes **load balancing** for the backend using NGINX to distribute traffic efficiently across multiple Node.js instances.
 
 ---
 
@@ -23,6 +23,7 @@ FynVid is a full-stack video streaming platform inspired by YouTube, built using
 - **MongoDB (Mongoose)** for database management
 - **Kafka** for event-driven processing
 - **JWT** for secure authentication
+- **NGINX** for load balancing across multiple backend instances
 
 ---
 
@@ -98,9 +99,15 @@ FynVid uses **Kafka** to decouple event generation from processing, ensuring sca
 
 ---
 
+## Load Balancing
+
+The backend is load balanced using **NGINX**, distributing incoming API requests across multiple Node.js instances to improve scalability and reliability. The configuration uses **least connections** to ensure requests go to the server with the fewest active connections.
+
+---
+
 ## Docker Setup
 
-You can quickly start **Kafka**, **Zookeeper**, and **Kafka UI** using Docker Compose.
+You can quickly start **Kafka**, **Zookeeper**, **Kafka UI**, and multiple backend instances using Docker Compose.
 
 ```bash
 docker-compose up -d
@@ -108,8 +115,9 @@ docker-compose up -d
 
 This will start:
 
-- ⚙️ **Kafka Broker** at port **9092**
-- 📊 **Kafka UI** at port **8089**
+- **Kafka Broker** at port 9092
+- **Kafka UI** at port 8089
+- **Backend instances** at ports 8001, 8002, and 8003
 
 You can access the Kafka UI at **http://localhost:8089**
 
@@ -180,4 +188,6 @@ MongoDB (Data Storage)
 Kafka (Event Queue)
       ↓
 Consumers (Async Processing)
+      ↓
+NGINX (Load Balancing)
 ```
