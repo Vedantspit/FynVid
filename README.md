@@ -134,7 +134,7 @@ Access Kafka UI:
 
 ---
 
-## 🛠️ Manual Setup (Optional)
+## Manual Setup (Setup Required for Docker-Compose)
 
 ### Clone repo
 
@@ -178,7 +178,7 @@ CLOUD_SECRET=cloudinary_secret
 VITE_API_URL = "http://localhost:8020/api/v1"
 ```
 
-### Start backend
+### Start backend (Manual or run Docker-compose)
 
 ```bash
 npm run dev
