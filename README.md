@@ -1,29 +1,29 @@
-# FynVid
+<h1 align="center">FynVid</h1>
 
 <p align="center">
   <img src="logof.png" alt="FynVid Logo" width="160"/>
 </p>
 
-FynVid is a full-stack video streaming platform inspired by YouTube, built using the **MERN** stack with **Kafka** integration for scalability and asynchronous processing. The platform also includes **load balancing** for the backend using NGINX to distribute traffic efficiently across multiple Node.js instances.
+[FynVid](https://fynvid.vercel.app/) is a full-stack video streaming platform inspired by YouTube, built using the **MERN** stack with **Kafka** for asynchronous event processing and **NGINX** load balancing across multiple backend instances.
 
 ---
 
 ## Tech Stack
 
-### Frontend
+### **Backend**
 
-- **React.js** for a fast, modern UI
-- **Tailwind CSS** for styling
-- **React Router** for navigation
-- **Context API** for authentication & state management
+- Node.js + Express.js
+- MongoDB + Mongoose
+- Kafka (Producers/Consumers)
+- JWT Authentication
+- NGINX Load Balancer (3 Node.js instances)
 
-### Backend
+### **Frontend**
 
-- **Node.js** + **Express.js** for RESTful APIs
-- **MongoDB (Mongoose)** for database management
-- **Kafka** for event-driven processing
-- **JWT** for secure authentication
-- **NGINX** for load balancing across multiple backend instances
+- React.js
+- Tailwind CSS
+- React Router
+- Context API (Auth + Global State)
 
 ---
 
@@ -33,133 +33,149 @@ FynVid is a full-stack video streaming platform inspired by YouTube, built using
   <img src="SystemArchitecture.png" alt="System Architecture" width="800"/>
 </p>
 
+---
+
 ## Features
 
-### User System
+### **User System**
 
-- Register and login securely using JWT
-- Update profile info, avatar, and cover image
+- Register & login using JWT
+- Update profile, avatar, and cover image
 
-### Video Management
+### **Video Management**
 
 - Upload and manage videos
 - Like, comment, and view videos
-- Each **view event** is processed asynchronously via Kafka for scalability
+- View events are processed asynchronously via Kafka
 
-### Playlists
+### **Playlists**
 
-- Create, update, and delete playlists
-- Add or remove videos from playlists
+- Create, update, delete playlists
+- Add/remove videos
 
-### Likes & Comments
+### **Likes & Comments**
 
-- Real-time updates on likes and comments
-- **Kafka producers** trigger notification events when users interact with videos
+- Real-time updates
+- Kafka producers trigger notification events
 
-### Notifications
+### **Notifications**
 
-- Get notified when:
-  - Someone likes your video
-  - Someone comments on your video
-  - Someone subscribes to your channel
-- **Kafka consumers** handle these events and create notifications efficiently
+- When someone:
+  - Likes your video
+  - Comments
+  - Subscribes
+- Kafka consumers create notifications asynchronously
 
-### Subscriptions
+### **Subscriptions**
 
 - Subscribe/unsubscribe to channels
-- View content from subscribed creators
+- Watch feed from subscribed creators
 
-### Dashboard
+### **Dashboard**
 
-- Track uploaded videos and performance metrics
+- Track uploads, views, engagement
 
 ---
 
 ## Kafka Integration
 
-FynVid uses **Kafka** to decouple event generation from processing, ensuring scalability and responsiveness.
+FynVid uses **Kafka** to decouple backend operations from event processing.
 
-### Why We Use Kafka
+### **Why Kafka?**
 
-- **Scalability:** Handles a massive number of concurrent events (likes, comments, views).
-- **Decoupling:** Producers don’t wait for consumers, improving response time.
-- **Reliability:** Prevents data loss even if a service temporarily fails.
-- **Extensibility:** New services can easily subscribe to the same event streams.
+- High scalability
+- Better responsiveness (async)
+- Prevents data loss with persistent logs
+- Easy to extend (add more microservices)
 
-### Kafka Consumers in FynVid
+### **Consumers**
 
-| Consumer                  | Role                                                      |
-| ------------------------- | --------------------------------------------------------- |
-| **Video Views Consumer**  | Processes and updates view counts in bulk for scalability |
-| **Likes Consumer**        | Listens to like events and creates notifications          |
-| **Comments Consumer**     | Listens to comment events and creates notifications       |
-| **Subscription Consumer** | Handles subscriber events and generates notifications     |
+| Consumer Name         | Responsibility                      |
+| --------------------- | ----------------------------------- |
+| Video Views Consumer  | Bulk processes video view events    |
+| Likes Consumer        | Creates notifications for likes     |
+| Comments Consumer     | Handles comment-based notifications |
+| Subscription Consumer | Processes subscriber notifications  |
 
-> Except for **video views**, the Kafka consumers primarily handle **notification creation**, while the database insertions for likes, comments, and subscriptions happen directly in the controller.
+> Database insertions for likes, comments, and subscriptions still happen directly in controllers. Kafka is used mainly for **notification creation** and **view processing**.
 
 ---
 
-## Load Balancing
+## NGINX Load Balancing
 
-The backend is load balanced using **NGINX**, distributing incoming API requests across multiple Node.js instances to improve scalability and reliability. The configuration uses **least connections** to ensure requests go to the server with the fewest active connections.
+FynVid backend uses NGINX to distribute traffic across 3 Node.js instances.
+
+### **Load balancing strategy:**
+
+```
+least_conn;
+```
+
+This sends requests to the backend with the fewest active connections.
 
 ---
 
 ## Docker Setup
 
-You can quickly start **Kafka**, **Zookeeper**, **Kafka UI**, and multiple backend instances using Docker Compose.
+Start **Kafka**, **Zookeeper**, **Kafka UI**, and **3 backend servers**:
 
 ```bash
 docker-compose up -d
 ```
 
-This will start:
+### After starting:
 
-- **Kafka Broker** at port 9092
-- **Kafka UI** at port 8089
-- **Backend instances** at ports 8001, 8002, and 8003
+- Kafka Broker → **localhost:9092**
+- Kafka UI → **localhost:8089**
+- Backend Instances → **8001, 8002, 8003**
 
-You can access the Kafka UI at **http://localhost:8089**
+Access Kafka UI:  
+**http://localhost:8089**
 
 ---
 
-## Manual Setup (Optional)
+## 🛠️ Manual Setup (Optional)
 
-### Clone the repository
+### Clone repo
 
 ```bash
 git clone https://github.com/Vedantspit/FynVid.git
 cd FynVid
 ```
 
-### Setup backend
+### Backend setup
 
 ```bash
 cd backend
 npm install
 ```
 
-### Setup frontend
+### Frontend setup
 
 ```bash
 cd frontend
 npm install
 ```
 
-### Environment variables
-
-Create a `.env` file inside the **backend** directory with:
+### Backend `.env`
 
 ```
-MONGO_URL=your_mongo_connection_string
-CORS_ORIGIN=frontend_URL
-ACCESS_TOKEN_SECRET=your_secret_key
+PORT=8000
+MONGO_URL=your_mongo_string
+CORS_ORIGIN=frontend_url
+ACCESS_TOKEN_SECRET=your_secret
 ACCESS_TOKEN_EXPIRY=duration
-REFRESH_TOKEN_SECRET=your_secret_key
+REFRESH_TOKEN_SECRET=your_secret
 REFRESH_TOKEN_EXPIRY=duration
-CLOUD_NAME=cloudinary_cloud_name
-CLOUD_KEY=cloudinary_cloud_key
-CLOUD_SECRET=i-cloudinary_secret
+CLOUD_NAME=cloudinary_name
+CLOUD_KEY=cloudinary_key
+CLOUD_SECRET=cloudinary_secret
+```
+
+### Frontend `.env`
+
+```
+VITE_API_URL = "http://localhost:8020/api/v1"
 ```
 
 ### Start backend
@@ -168,26 +184,43 @@ CLOUD_SECRET=i-cloudinary_secret
 npm run dev
 ```
 
-### Run frontend
+For production:
 
 ```bash
-npm run dev
+npm run build
+```
+
+## Frontend Deployment With NGINX
+
+After running the build command, place the generated `dist` folder in your preferred directory.  
+Download and install **NGINX**, then replace the default `nginx.conf` with the configuration provided in the repository.
+
+Update the following path to point to your actual build directory:
+
+```
+location / {
+    root YOUR_PATH/dist;
+    index index.html;
+    try_files $uri /index.html;
+}
 ```
 
 ---
 
-## Architecture Overview
+## Full Architecture Overview
 
-```text
-Frontend (React)
-      ↓
-Express API (Node.js)
-      ↓
-MongoDB (Data Storage)
-      ↓
-Kafka (Event Queue)
-      ↓
-Consumers (Async Processing)
-      ↓
-NGINX (Load Balancing)
 ```
+Frontend (React)
+        ↓
+NGINX (Load Balancer)
+        ↓
+Backend Instances (Node.js: 8001, 8002, 8003)
+        ↓
+MongoDB
+        ↓
+Kafka (Event Queue)
+        ↓
+Kafka Consumers (Async Processing)
+```
+
+---
