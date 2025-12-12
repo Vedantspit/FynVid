@@ -13,6 +13,8 @@ export default function Home() {
     (async () => {
       try {
         const res = await api.request(endpoints.videos());
+        console.log("VIDEOS ", res);
+
         setVideos(res?.data?.videos || res?.data || []);
       } catch (e) {
         setError(e.message);

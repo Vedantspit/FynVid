@@ -37,7 +37,10 @@ const getAllVideos = asyncHandler(async (req, res) => {
       .sort(sort)
       .skip(skip)
       .limit(Math.max(1, +limit))
-      .populate({ path: "owner", select: "fullName userName avatar" }),
+      .populate({
+        path: "owner",
+        select: "fullName userName avatar createdAt",
+      }),
   ]);
 
   return res

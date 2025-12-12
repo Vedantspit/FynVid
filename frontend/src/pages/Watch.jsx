@@ -17,6 +17,30 @@ const capitalizeWords = (str) => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 };
+const getTimeDiff = (dateString) => {
+  const uploadedSec = new Date(dateString);
+  const currentSec = new Date();
+
+  const diffInSecs = (currentSec - uploadedSec) / 1000;
+
+  const mapTime = [
+    { label: "year", seconds: 365 * 24 * 60 * 60 },
+    { label: "month", seconds: 30 * 24 * 60 * 60 },
+    { label: "week", seconds: 7 * 24 * 60 * 60 },
+    { label: "day", seconds: 24 * 60 * 60 },
+    { label: "hour", seconds: 60 * 60 },
+    { label: "minute", seconds: 60 },
+    { label: "second", seconds: 1 },
+  ];
+
+  for (let interval of mapTime) {
+    const count = Math.floor(diffInSecs / interval.seconds);
+    if (count >= 1) {
+      return `${count} ${interval.label}${count > 1 ? "s" : ""} ago`;
+    }
+  }
+  return "just now";
+};
 
 export default function Watch() {
   const { id } = useParams();
@@ -202,11 +226,16 @@ export default function Watch() {
           />
         )}
       </div>
-      {video?.description ? (
-        <div className="mt-4 sm:mt-5 text-sm sm:text-base text-gray-600 whitespace-pre-line break-words bg-gray-50 p-4 rounded-lg">
-          {video.description}
-        </div>
-      ) : null}
+      <div className="mt-4 sm:mt-5 text-sm sm:text-base text-gray-600 whitespace-pre-line wrap-break-words bg-gray-50 p-4 rounded-lg">
+        {getTimeDiff(video.createdAt)}
+        {video?.description && (
+          <>
+            {"\n\n"}
+            {/* spacing */}
+            {video.description}
+          </>
+        )}
+      </div>
 
       {/* Like Button BELOW description */}
       <div className="mt-4 sm:mt-5">
