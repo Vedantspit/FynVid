@@ -22,7 +22,7 @@ export default function Notification() {
       if (Array.isArray(data)) {
         setNotifications(data);
 
-        // ✅ Mark all unread as read when user opens Notifications page
+        // Mark all unread as read when user opens Notifications page
         const unread = data.filter((n) => !n.isRead);
         if (unread.length > 0) {
           await api.request(endpoints.markAllNotificationsRead(), {

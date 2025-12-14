@@ -1,6 +1,6 @@
 import { Notification } from "../models/notification.model.js";
 
-// ✅ Get all notifications for the logged-in user
+//  Get all notifications for the logged-in user
 export const getUserNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({ recipient: req.user._id })
@@ -17,7 +17,7 @@ export const getUserNotifications = async (req, res) => {
   }
 };
 
-// ✅ Mark a single notification as read
+//  Mark a single notification as read
 export const markNotificationRead = async (req, res) => {
   try {
     const { id } = req.params;
@@ -39,7 +39,7 @@ export const markNotificationRead = async (req, res) => {
   }
 };
 
-// ✅ Mark ALL unread notifications as read
+//  Mark ALL unread notifications as read
 export const markAllNotificationsRead = async (req, res) => {
   try {
     await Notification.updateMany(
@@ -56,7 +56,7 @@ export const markAllNotificationsRead = async (req, res) => {
   }
 };
 
-// ✅ Get count of unread notifications
+// Get count of unread notifications
 export const getUnreadNotificationCount = async (req, res) => {
   try {
     const count = await Notification.countDocuments({

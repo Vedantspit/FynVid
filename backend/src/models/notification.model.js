@@ -8,7 +8,7 @@ const notifcationSchema = new Schema(
       required: true,
     },
     sender: {
-      type: Schema.Types.ObjectId, // one who the event
+      type: Schema.Types.ObjectId, // one who the recepent liked/subscribed/commented
       ref: "User",
       required: true,
     },
