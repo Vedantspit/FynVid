@@ -15,6 +15,9 @@ import {
 import { upload } from "../middlewares/multer.js";
 import { verifyJWT } from "../middlewares/auth.js";
 import rateLimit from "express-rate-limit";
+import redisClient from "../db/redis.js";
+import { RedisStore } from "rate-limit-redis";
+
 const router = Router();
 
 router.post(
@@ -34,6 +37,10 @@ const loginLimiter = rateLimit({
   message: { error: "Too many login attempts, please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
+  store: new RedisStore({
+    sendCommand: (...args) => redisClient.sendCommand(args),
+    prefix: "rl-login:",
+  }),
 });
 router.post("/login", loginLimiter, loginUser);
 router.post("/refresh-token", getRefreshAccessToken);
@@ -67,4 +74,11 @@ router.patch(
 router.get("/channel/:username", verifyJWT, getUserChannelProfile);
 router.get("/history", verifyJWT, getWatchHistory);
 
+router.options("/", (req, res) => {
+  console.log("Custom OPTIONS handler executed!"); // Check container logs
+  res.setHeader("X-Custom-Options-Handler", "true"); // Check Postman headers
+  res.setHeader("Allow", "GET, POST, HEAD, PATCH");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, HEAD, PATCH");
+  res.status(204).end();
+});
 export default router;
