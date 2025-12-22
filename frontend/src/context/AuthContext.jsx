@@ -5,10 +5,16 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [tokens, setTokens] = useState({ accessToken: null, refreshToken: null });
+  const [tokens, setTokens] = useState({
+    accessToken: null,
+    refreshToken: null,
+  });
   const [loading, setLoading] = useState(true);
 
-  const api = useMemo(() => buildApi(() => tokens.accessToken, setTokens), [tokens.accessToken]);
+  const api = useMemo(
+    () => buildApi(() => tokens.accessToken, setTokens),
+    [tokens.accessToken]
+  );
 
   useEffect(() => {
     // try to fetch current user
@@ -22,7 +28,6 @@ export function AuthProvider({ children }) {
         setLoading(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = async ({ username, email, password }) => {
@@ -37,7 +42,14 @@ export function AuthProvider({ children }) {
     return res;
   };
 
-  const register = async ({ userName, fullName, email, password, avatarFile, coverImageFile }) => {
+  const register = async ({
+    userName,
+    fullName,
+    email,
+    password,
+    avatarFile,
+    coverImageFile,
+  }) => {
     const form = new FormData();
     form.append("userName", userName);
     form.append("fullName", fullName);
@@ -45,7 +57,11 @@ export function AuthProvider({ children }) {
     form.append("password", password);
     if (avatarFile) form.append("avatar", avatarFile);
     if (coverImageFile) form.append("coverImage", coverImageFile);
-    const res = await api.request(endpoints.register(), { method: "POST", body: form, isForm: true });
+    const res = await api.request(endpoints.register(), {
+      method: "POST",
+      body: form,
+      isForm: true,
+    });
     return res;
   };
 
@@ -79,5 +95,3 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
-
-
