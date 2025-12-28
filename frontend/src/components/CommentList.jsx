@@ -7,14 +7,17 @@ export function CommentForm({ videoId, onAdded }) {
   const { api } = useAuth();
   const [text, setText] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     if (!text.trim()) return;
 
     setError("");
 
     try {
+      setLoading(true);
       await api.request(endpoints.comments(videoId), {
         method: "POST",
         body: { content: text },
@@ -25,13 +28,13 @@ export function CommentForm({ videoId, onAdded }) {
     } catch (err) {
       console.error("Error adding comment:", err);
 
-      // Express-rate-limit sends 429 but you’re not getting .status from err
-      // So rely on message instead:
       if (err.message?.toLowerCase().includes("too many")) {
         setError("You are commenting too quickly. Please slow down!");
       } else {
         setError(err.message || "Failed to add comment. Try again later.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,13 +42,25 @@ export function CommentForm({ videoId, onAdded }) {
     <form onSubmit={submit} className="flex flex-col gap-2">
       <div className="flex gap-2">
         <input
+          disabled={loading}
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Add a comment"
           className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
         />
-        <button className="px-4 py-2 rounded bg-gray-900 text-white cursor-pointer hover:bg-gray-800">
-          Comment
+
+        <button
+          disabled={loading}
+          className="px-4 py-2 rounded bg-gray-900 text-white cursor-pointer hover:bg-gray-800"
+        >
+          {loading ? (
+            <>
+              <svg className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+              <span>Posting…</span>
+            </>
+          ) : (
+            <>Comment</>
+          )}
         </button>
       </div>
 
@@ -74,7 +89,6 @@ export default function CommentList({ videoId }) {
 
   useEffect(() => {
     if (videoId) fetchComments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId]);
 
   const handleEdit = (comment) => {
