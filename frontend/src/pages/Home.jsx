@@ -6,6 +6,7 @@ import VideoList from "../components/VideoList";
 import { FaSearch } from "react-icons/fa";
 export default function Home() {
   const { api } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [videos, setVideos] = useState([]);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -18,6 +19,8 @@ export default function Home() {
         limit: 10,
         sortby: "views",
       });
+      setError("");
+      setLoading(true);
       const res = await api.request(
         `${endpoints.videos()}?${params.toString()}`
       );
@@ -25,16 +28,22 @@ export default function Home() {
       setVideos(res?.data?.videos || res?.data || []);
     } catch (error) {
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
   useEffect(() => {
     (async () => {
       try {
+        setError("");
+        setLoading(true);
         const res = await api.request(endpoints.videos());
         console.log("VIDEOS ", res);
         setVideos(res?.data?.videos || res?.data || []);
       } catch (e) {
         setError(e.message);
+      } finally {
+        setLoading(false);
       }
     })();
   }, [api]);
@@ -51,6 +60,7 @@ export default function Home() {
           />
           <button
             type="submit"
+            disabled={loading || !search.trim()}
             className="px-4 py-2 bg-black text-white rounded-md"
           >
             <FaSearch />
@@ -59,23 +69,31 @@ export default function Home() {
       </div>
 
       <div className="p-4">
+        {loading && (
+          <h2 className="text-gray-600 text-center text-xl mt-8">
+            Loading ...
+          </h2>
+        )}
         {error && <div className="text-red-600 mb-4">{error}</div>}
-        {videos.length === 0 ? (
+        {!loading && videos.length === 0 ? (
           <h2 className="text-gray-600 text-center text-xl mt-8">
             No videos found
           </h2>
         ) : (
-          <>
-            {/* Mobile layout */}
-            <div className="block sm:hidden">
-              <VideoList videos={videos} />
-            </div>
+          !loading &&
+          videos.length > 0 && (
+            <>
+              {/* Mobile layout */}
+              <div className="block sm:hidden">
+                <VideoList videos={videos} />
+              </div>
 
-            {/* Tablet / Desktop layout */}
-            <div className="hidden sm:block">
-              <VideoGrid videos={videos} />
-            </div>
-          </>
+              {/* Tablet / Desktop layout */}
+              <div className="hidden sm:block">
+                <VideoGrid videos={videos} />
+              </div>
+            </>
+          )
         )}
       </div>
     </>
