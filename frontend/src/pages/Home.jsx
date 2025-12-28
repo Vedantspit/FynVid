@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { endpoints } from "../api/client";
 import VideoGrid from "../components/VideoGrid";
 import VideoList from "../components/VideoList";
-
+import { FaSearch } from "react-icons/fa";
 export default function Home() {
   const { api } = useAuth();
   const [videos, setVideos] = useState([]);
@@ -51,9 +51,9 @@ export default function Home() {
           />
           <button
             type="submit"
-            className="px-4 py-1 bg-black text-white rounded-md"
+            className="px-4 py-2 bg-black text-white rounded-md"
           >
-            Search
+            <FaSearch />
           </button>
         </form>
       </div>
