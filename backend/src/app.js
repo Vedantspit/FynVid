@@ -13,6 +13,9 @@ const globalLimiter = rateLimit({
   limit: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    return req.method === "OPTIONS" || req.method === "HEAD";
+  },
   store: new RedisStore({
     sendCommand: (...args) => redisClient.sendCommand(args),
   }),
@@ -26,10 +29,10 @@ app.use(
   })
 );
 app.set("trust proxy", 1);
+app.use(express.static("public"));
 app.use(globalLimiter);
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-app.use(express.static("public"));
 app.use(cookieParser());
 
 app.use((req, res, next) => {
