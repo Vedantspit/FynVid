@@ -96,6 +96,7 @@ export const endpoints = {
   // comments
   comments: (videoId) => `/comments/${videoId}`,
   commentById: (id) => `/comments/c/${id}`,
+  getCommentReplies: (id) => `/comments/c/${id}`,
   // playlists (note: backend mounts at '/playlist')
   playlistsByUser: (userId) => `/playlist/user/${userId}`,
   playlistById: (id) => `/playlist/${id}`,

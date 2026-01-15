@@ -72,6 +72,7 @@ export function CommentForm({ videoId, onAdded }) {
 export default function CommentList({ videoId }) {
   const { api, user } = useAuth();
   const [comments, setComments] = useState([]);
+  const [replies, setReplies] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
 
@@ -108,7 +109,18 @@ export default function CommentList({ videoId }) {
       fetchComments();
     } catch {}
   };
-
+  const fetchReplies = async (commentId) => {
+    try {
+      const res = await api.request(endpoints.getCommentReplies(commentId));
+      const items = Array.isArray(res?.data?.replies) ? res.data.replies : [];
+      setReplies((prev) => {
+        return {
+          ...prev,
+          [commentId]: items,
+        };
+      });
+    } catch {}
+  };
   return (
     <div className="space-y-6">
       {/* Comment input */}
@@ -121,6 +133,23 @@ export default function CommentList({ videoId }) {
             key={c._id}
             className="p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
           >
+            <button
+              onClick={() => fetchReplies(c._id)}
+              className="text-xs text-blue-600 mt-2"
+            >
+              {" "}
+              View Replies
+            </button>
+            {replies[c._id]?.map((r) => (
+              <div
+                key={r._id}
+                className="ml-8 mt-3 p-3 border rounded bg-white"
+              >
+                <div className="text-sm font-medium">{r.owner?.userName}</div>
+                <div className="text-sm text-gray-700">{r.content}</div>
+              </div>
+            ))}
+
             {/* Header: avatar + username + buttons */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

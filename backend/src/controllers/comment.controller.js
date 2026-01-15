@@ -11,12 +11,12 @@ const getVideoComments = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid video id");
 
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 30 } = req.query;
   const skip = (Math.max(1, +page) - 1) * Math.max(1, +limit);
 
   const [total, comments] = await Promise.all([
-    Comment.countDocuments({ video: videoId }),
-    Comment.find({ video: videoId })
+    Comment.countDocuments({ video: videoId, parentCommentId: null }),
+    Comment.find({ video: videoId, parentCommentId: null })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Math.max(1, +limit))
@@ -29,23 +29,43 @@ const getVideoComments = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { comments, page: +page, limit: +limit, total },
-        "Comments fetched"
+        "Top-level Comments fetched"
       )
     );
 });
 
+const getCommentReplies = asyncHandler(async (req, res) => {
+  const { commentId } = req.params;
+  if (!isValidObjectId(commentId)) {
+    throw new ApiError(400, "CommentId invalid ");
+  }
+  const replies = await Comment.find({
+    parentCommentId: commentId,
+  })
+    .sort({ createdAt: 1 })
+    .populate({ path: "owner", select: "fullName userName avatar" });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { replies }, "Replies fetched successfully"));
+});
 const addComment = asyncHandler(async (req, res) => {
   //KAFKA added for comment added to a video, only notification goes to consumer.
   const { videoId } = req.params;
-  const { content } = req.body;
+  const { content, parentCommentId } = req.body;
   if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid video id");
   if (!content || !content.trim())
     throw new ApiError(400, "Content is required");
+
+  if (parentCommentId && !isValidObjectId(parentCommentId)) {
+    throw new ApiError(400, "Invalid parent comment id");
+  }
 
   const comment = await Comment.create({
     content: content.trim(),
     video: videoId,
     owner: req.user._id,
+    parentCommentId: parentCommentId || null,
   });
   const populated = await Comment.findById(comment._id).populate({
     path: "owner",
@@ -93,4 +113,10 @@ const deleteComment = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, {}, "Comment deleted"));
 });
 
-export { getVideoComments, addComment, updateComment, deleteComment };
+export {
+  getVideoComments,
+  addComment,
+  updateComment,
+  deleteComment,
+  getCommentReplies,
+};

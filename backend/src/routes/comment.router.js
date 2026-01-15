@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   addComment,
   deleteComment,
+  getCommentReplies,
   getVideoComments,
   updateComment,
 } from "../controllers/comment.controller.js";
@@ -30,6 +31,7 @@ router.get("/:videoId", getVideoComments);
 // Add comment (with limiter)
 router.post("/:videoId", commentLimiter, addComment);
 
+router.get("/c/:commentId", getCommentReplies);
 router.delete("/c/:commentId", deleteComment);
 router.patch("/c/:commentId", updateComment);
 
