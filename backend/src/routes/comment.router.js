@@ -11,7 +11,6 @@ import rateLimit from "express-rate-limit";
 import redisClient from "../db/redis.js";
 import { RedisStore } from "rate-limit-redis";
 
-// Specific limiter: Comment spam
 const commentLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   limit: 10,
@@ -25,14 +24,15 @@ const commentLimiter = rateLimit({
 });
 const router = Router();
 
-router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
-router.get("/:videoId", getVideoComments);
+router.use(verifyJWT);
 
-// Add comment (with limiter)
-router.post("/:videoId", commentLimiter, addComment);
-
+// COMMENT-LEVEL routes first
 router.get("/c/:commentId", getCommentReplies);
 router.delete("/c/:commentId", deleteComment);
 router.patch("/c/:commentId", updateComment);
+
+// VIDEO-LEVEL routes last
+router.get("/:videoId", getVideoComments);
+router.post("/:videoId", commentLimiter, addComment);
 
 export default router;
