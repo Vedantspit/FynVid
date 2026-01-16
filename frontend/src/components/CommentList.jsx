@@ -11,10 +11,7 @@ export function CommentForm({ videoId, onAdded }) {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (loading) return;
-    if (!text.trim()) return;
-
-    setError("");
+    if (loading || !text.trim()) return;
 
     try {
       setLoading(true);
@@ -26,13 +23,7 @@ export function CommentForm({ videoId, onAdded }) {
       setText("");
       onAdded?.();
     } catch (err) {
-      console.error("Error adding comment:", err);
-
-      if (err.message?.toLowerCase().includes("too many")) {
-        setError("You are commenting too quickly. Please slow down!");
-      } else {
-        setError(err.message || "Failed to add comment. Try again later.");
-      }
+      setError(err.message || "Failed to add comment");
     } finally {
       setLoading(false);
     }
@@ -46,45 +37,46 @@ export function CommentForm({ videoId, onAdded }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Add a comment"
-          className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
+          className="flex-1 px-3 py-2 border rounded"
         />
-
         <button
           disabled={loading}
-          className="px-4 py-2 rounded bg-gray-900 text-white cursor-pointer hover:bg-gray-800"
+          className="px-4 py-2 bg-gray-900 text-white rounded"
         >
-          {loading ? (
-            <>
-              <svg className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
-              <span>Posting…</span>
-            </>
-          ) : (
-            <>Comment</>
-          )}
+          {loading ? "Posting…" : "Comment"}
         </button>
       </div>
-
-      {error && <p className="text-red-800 text-sm mt-1 font-bold">{error}</p>}
+      {error && <p className="text-red-700 text-sm">{error}</p>}
     </form>
   );
 }
 
 export default function CommentList({ videoId }) {
   const { api, user } = useAuth();
+
   const [comments, setComments] = useState([]);
   const [replies, setReplies] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
 
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [replyLoading, setReplyLoading] = useState(false);
+
   const fetchComments = async () => {
     try {
       const res = await api.request(endpoints.comments(videoId));
-      const items = Array.isArray(res?.data)
-        ? res.data
-        : Array.isArray(res?.data?.comments)
-        ? res.data.comments
-        : [];
-      setComments(items);
+      setComments(res?.data?.comments || res?.data || []);
+    } catch {}
+  };
+
+  const fetchReplies = async (commentId) => {
+    try {
+      const res = await api.request(endpoints.getCommentReplies(commentId));
+      setReplies((prev) => ({
+        ...prev,
+        [commentId]: res?.data?.replies || [],
+      }));
     } catch {}
   };
 
@@ -92,13 +84,9 @@ export default function CommentList({ videoId }) {
     if (videoId) fetchComments();
   }, [videoId]);
 
-  const handleEdit = (comment) => {
-    setEditingId(comment._id);
-    setEditText(comment.content);
-  };
-
   const saveEdit = async (commentId) => {
     if (!editText.trim()) return;
+
     try {
       await api.request(endpoints.commentById(commentId), {
         method: "PATCH",
@@ -109,116 +97,136 @@ export default function CommentList({ videoId }) {
       fetchComments();
     } catch {}
   };
-  const fetchReplies = async (commentId) => {
+
+  const submitReply = async (commentId) => {
+    if (!replyText.trim()) return;
+
     try {
-      const res = await api.request(endpoints.getCommentReplies(commentId));
-      const items = Array.isArray(res?.data?.replies) ? res.data.replies : [];
-      setReplies((prev) => {
-        return {
-          ...prev,
-          [commentId]: items,
-        };
+      setReplyLoading(true);
+      await api.request(endpoints.comments(videoId), {
+        method: "POST",
+        body: {
+          content: replyText,
+          parentCommentId: commentId,
+        },
       });
-    } catch {}
+
+      setReplyText("");
+      setReplyingTo(null);
+      fetchReplies(commentId);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setReplyLoading(false);
+    }
   };
+
   return (
     <div className="space-y-6">
-      {/* Comment input */}
       <CommentForm videoId={videoId} onAdded={fetchComments} />
 
-      {/* Comment list */}
       <div className="space-y-4">
-        {(Array.isArray(comments) ? comments : []).map((c) => (
-          <div
-            key={c._id}
-            className="p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-          >
-            <button
-              onClick={() => fetchReplies(c._id)}
-              className="text-xs text-blue-600 mt-2"
-            >
-              {" "}
-              View Replies
-            </button>
-            {replies[c._id]?.map((r) => (
-              <div
-                key={r._id}
-                className="ml-8 mt-3 p-3 border rounded bg-white"
-              >
-                <div className="text-sm font-medium">{r.owner?.userName}</div>
-                <div className="text-sm text-gray-700">{r.content}</div>
-              </div>
-            ))}
-
-            {/* Header: avatar + username + buttons */}
-            <div className="flex items-center justify-between">
+        {comments.map((c) => (
+          <div key={c._id} className="p-4 border rounded bg-gray-50">
+            {/* HEADER */}
+            <div className="flex justify-between">
               <div className="flex items-center gap-3">
                 <img
                   src={c.owner?.avatar}
-                  alt={c?.owner?.userName || "avatar"}
-                  className="w-9 h-9 rounded-full object-cover border border-gray-300"
+                  className="w-9 h-9 rounded-full border"
                 />
-                <span className="text-sm font-medium text-gray-800">
-                  {c?.owner?.userName || c?.ownerName}
-                </span>
+                <span className="text-sm font-medium">{c.owner?.userName}</span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2">
                 <CommentLikeButton commentId={c._id} />
-                {user?._id &&
-                String(user._id) === String(c?.owner?._id || c?.owner) ? (
+
+                {user?._id === c.owner?._id && (
                   <>
                     <button
                       onClick={() =>
-                        editingId === c._id ? saveEdit(c._id) : handleEdit(c)
+                        editingId === c._id
+                          ? saveEdit(c._id)
+                          : setEditingId(c._id)
                       }
-                      className="px-2 py-1 rounded border text-xs cursor-pointer hover:bg-gray-200"
-                      title={editingId === c._id ? "Save" : "Edit"}
+                      className="text-xs border px-2 rounded"
                     >
-                      {editingId === c._id ? "💾 Save" : "✏️ Edit"}
+                      {editingId === c._id ? "Save" : "Edit"}
                     </button>
 
                     <button
                       onClick={async () => {
-                        try {
-                          await api.request(endpoints.commentById(c._id), {
-                            method: "DELETE",
-                          });
-                          fetchComments();
-                        } catch {}
+                        await api.request(endpoints.commentById(c._id), {
+                          method: "DELETE",
+                        });
+                        fetchComments();
                       }}
-                      className="px-2 py-1 rounded border text-xs cursor-pointer hover:bg-gray-200"
-                      title="Delete"
+                      className="text-xs border px-2 rounded"
                     >
-                      🗑 Delete
+                      Delete
                     </button>
                   </>
-                ) : null}
+                )}
+
+                <button
+                  onClick={() =>
+                    setReplyingTo(replyingTo === c._id ? null : c._id)
+                  }
+                  className="text-xs border px-2 rounded"
+                >
+                  Reply
+                </button>
               </div>
             </div>
 
-            {/* Comment content or edit box */}
+            {/* CONTENT */}
             {editingId === c._id ? (
-              <div className="mt-3 flex gap-2">
+              <input
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                className="mt-2 w-full border px-2 py-1"
+                autoFocus
+              />
+            ) : (
+              <p className="mt-2 text-sm">{c.content}</p>
+            )}
+
+            {/* REPLY FORM */}
+            {replyingTo === c._id && (
+              <div className="mt-3 ml-8 flex gap-2">
                 <input
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
-                  autoFocus
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Write a reply..."
+                  className="flex-1 border px-2 py-1"
                 />
                 <button
-                  type="button"
-                  onClick={() => setEditingId(null)}
-                  className="px-3 py-2 border rounded text-xs cursor-pointer hover:bg-gray-200"
+                  disabled={replyLoading}
+                  onClick={() => submitReply(c._id)}
+                  className="bg-gray-900 text-white px-3 rounded text-xs"
                 >
-                  ❌ Cancel
+                  {replyLoading ? "..." : "Reply"}
                 </button>
               </div>
-            ) : (
-              <div className="mt-3 text-gray-700 text-sm leading-relaxed">
-                {c.content}
-              </div>
             )}
+
+            {/* REPLIES */}
+            <button
+              onClick={() => fetchReplies(c._id)}
+              className="text-xs text-blue-600 mt-2"
+            >
+              View Replies
+            </button>
+
+            {replies[c._id]?.map((r) => (
+              <div
+                key={r._id}
+                className="ml-8 mt-2 p-2 border rounded bg-white"
+              >
+                <div className="text-xs font-medium">{r.owner?.userName}</div>
+                <div className="text-sm">{r.content}</div>
+              </div>
+            ))}
           </div>
         ))}
       </div>
