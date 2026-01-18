@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 import { Comment } from "../models/comment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -11,26 +11,70 @@ const getVideoComments = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid video id");
 
-  const { page = 1, limit = 30 } = req.query;
-  const skip = (Math.max(1, +page) - 1) * Math.max(1, +limit);
-
-  const [total, comments] = await Promise.all([
-    Comment.countDocuments({ video: videoId, parentCommentId: null }),
-    Comment.find({ video: videoId, parentCommentId: null })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Math.max(1, +limit))
-      .populate({ path: "owner", select: "fullName userName avatar" }),
+  const comments = await Comment.aggregate([
+    {
+      $match: {
+        video: mongoose.Types.ObjectId.createFromHexString(videoId),
+        parentCommentId: null,
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    {
+      $unwind: "$owner",
+    },
+    {
+      $lookup: {
+        from: "comments",
+        localField: "_id",
+        foreignField: "parentCommentId",
+        as: "replies",
+      },
+    },
+    {
+      $addFields: {
+        repliesCount: { $size: "$replies" },
+      },
+    },
+    {
+      $project: {
+        replies: 0,
+        "owner.password": 0,
+        "owner.email": 0,
+        "owner.coverImage": 0,
+        "owner.watchHistory": 0,
+        "owner.refreshToken": 0,
+      },
+    },
+    {
+      $sort: { createdAt: -1 },
+    },
   ]);
+  // const { page = 1, limit = 30 } = req.query;
+  // const skip = (Math.max(1, +page) - 1) * Math.max(1, +limit);
+  // const [total, comments] = await Promise.all([
+  //   Comment.countDocuments({ video: videoId, parentCommentId: null }),
+  //   Comment.find({ video: videoId, parentCommentId: null })
+  //     .sort({ createdAt: -1 })
+  //     .skip(skip)
+  //     .limit(Math.max(1, +limit))
+  //     .populate({ path: "owner", select: "fullName userName avatar" }),
+  // ]);
 
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        { comments, page: +page, limit: +limit, total },
-        "Top-level Comments fetched"
-      )
+        { comments },
+        "Top-level Comments with reply count fetched",
+      ),
     );
 });
 
@@ -49,6 +93,7 @@ const getCommentReplies = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, { replies }, "Replies fetched successfully"));
 });
+
 const addComment = asyncHandler(async (req, res) => {
   //KAFKA added for comment added to a video, only notification goes to consumer.
   const { videoId } = req.params;

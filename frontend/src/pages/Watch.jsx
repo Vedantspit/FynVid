@@ -118,7 +118,7 @@ export default function Watch() {
             <button
               onClick={async () => {
                 const confirmDelete = window.confirm(
-                  "Are you sure you want to delete this video? This action cannot be undone."
+                  "Are you sure you want to delete this video? This action cannot be undone.",
                 );
                 if (!confirmDelete) return;
 
@@ -146,7 +146,7 @@ export default function Watch() {
                   navigate("/");
                 } catch (error) {
                   setError(
-                    "Something went wrong while toggling the publish status."
+                    "Something went wrong while toggling the publish status.",
                   );
                 }
               }}
@@ -250,7 +250,7 @@ export default function Watch() {
 
       {/* Comments */}
       <div className="mt-6 sm:mt-8">
-        <CommentList videoId={video._id} />
+        <CommentList videoId={video._id} vidOwner={video.owner} />
       </div>
 
       {/* Playlist manager */}

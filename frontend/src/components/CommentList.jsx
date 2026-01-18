@@ -51,7 +51,9 @@ export function CommentForm({ videoId, onAdded }) {
   );
 }
 
-export default function CommentList({ videoId }) {
+export default function CommentList({ videoId, vidOwner }) {
+  console.log("Got vidId - ", videoId, "Vid owner - ", vidOwner);
+
   const { api, user } = useAuth();
 
   const [comments, setComments] = useState([]);
@@ -66,6 +68,7 @@ export default function CommentList({ videoId }) {
   const fetchComments = async () => {
     try {
       const res = await api.request(endpoints.comments(videoId));
+      console.log("Top Level Comments for this video -> ", res.data.comments);
       setComments(res?.data?.comments || res?.data || []);
     } catch {}
   };
@@ -160,12 +163,23 @@ export default function CommentList({ videoId }) {
                         >
                           {editingId === c._id ? "Save" : "Edit"}
                         </button>
+                      </>
+                    )}
+                    {(user?._id === c.owner?._id ||
+                      vidOwner?._id === user?._id) && (
+                      <>
                         <button
                           onClick={async () => {
-                            await api.request(endpoints.commentById(c._id), {
-                              method: "DELETE",
-                            });
-                            fetchComments();
+                            if (
+                              window.confirm(
+                                "Are you sure you want to delete this comment ?",
+                              )
+                            ) {
+                              await api.request(endpoints.commentById(c._id), {
+                                method: "DELETE",
+                              });
+                              fetchComments();
+                            }
                           }}
                           className="text-xs text-gray-500 hover:text-red-600"
                         >
@@ -218,34 +232,53 @@ export default function CommentList({ videoId }) {
                     </button>
                   </div>
                 )}
-
                 {/* REPLIES SECTION */}
                 <div className="mt-2">
-                  <button
-                    onClick={() => fetchReplies(c._id)}
-                    className="text-xs font-bold text-blue-600 hover:bg-blue-50 px-2 py-1 rounded"
-                  >
-                    {replies[c._id] ? "▼ Hide Replies" : "▶ View Replies"}
-                  </button>
+                  {c.repliesCount > 0 && (
+                    <button
+                      onClick={() => {
+                        if (replies[c._id]) {
+                          // Toggle off: clear replies for this comment
+                          setReplies((prev) => {
+                            const newState = { ...prev };
+                            delete newState[c._id];
+                            return newState;
+                          });
+                        } else {
+                          fetchReplies(c._id);
+                        }
+                      }}
+                      className="text-xs font-bold text-blue-600 hover:bg-blue-50 px-2 py-1 rounded"
+                    >
+                      {replies[c._id]
+                        ? "▼ Hide Replies"
+                        : `▶ View ${c.repliesCount} Replies`}
+                    </button>
+                  )}
 
-                  <div className="mt-4 ml-2 border-l-2 pl-4">
-                    {" "}
-                    {/* Indented replies */}
-                    {replies[c._id]?.map((r) => (
-                      <div key={r._id} className="flex gap-3 items-start mb-3">
-                        <img
-                          src={r.owner?.avatar}
-                          className="w-7 h-7 rounded-full border shrink-0"
-                        />
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold">
-                            @{r.owner?.userName}
-                          </span>
-                          <p className="text-sm text-gray-700">{r.content}</p>
+                  {/* Only show this container if we actually have replies in state */}
+                  {replies[c._id] && replies[c._id].length > 0 && (
+                    <div className="mt-4 ml-2 border-l-2 pl-4">
+                      {replies[c._id].map((r) => (
+                        <div
+                          key={r._id}
+                          className="flex gap-3 items-start mb-3"
+                        >
+                          <img
+                            src={r.owner?.avatar}
+                            className="w-7 h-7 rounded-full border shrink-0"
+                            alt="avatar"
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold">
+                              @{r.owner?.userName}
+                            </span>
+                            <p className="text-sm text-gray-700">{r.content}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

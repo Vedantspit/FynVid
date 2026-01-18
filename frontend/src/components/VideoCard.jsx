@@ -108,7 +108,7 @@ export default function VideoCard({ video }) {
             )}
              
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <div>{getTimeDiff(video.createdAt)} ago</div>
+              <div>{getTimeDiff(video.createdAt)}</div>
               <div>•</div>
               <div>{views} views</div>
             </div>
