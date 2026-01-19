@@ -22,10 +22,14 @@ export default function LikeButton({
         if (likedIds.includes(String(videoId))) setLiked(true);
       } catch {}
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId]);
 
   const toggle = async () => {
+    const previousLiked = liked;
+    const previousCount = count;
+    const beforeToggledLike = !liked;
+    setLiked(beforeToggledLike);
+    setCount((prev) => (beforeToggledLike ? prev + 1 : Math.max(0, prev - 1)));
     try {
       const res = await api.request(endpoints.toggleVideoLike(videoId), {
         method: "POST",
@@ -36,7 +40,9 @@ export default function LikeButton({
       if (typeof serverCount === "number") setCount(serverCount);
       else setCount((c) => (liked ? Math.max(0, c - 1) : c + 1));
     } catch (e) {
-      // noop
+      setLiked(previousLiked);
+      setCount(previousCount);
+      alert("Failed to update like. Please check your connection.");
     }
   };
 
