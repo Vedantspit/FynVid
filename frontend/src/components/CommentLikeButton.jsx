@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { endpoints } from "../api/client";
 
-export default function CommentLikeButton({ commentId, initialLiked = false, initialCount = 0 }) {
+export default function CommentLikeButton({
+  commentId,
+  initialLiked = false,
+  initialCount = 0,
+}) {
   const { api } = useAuth();
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
@@ -25,21 +29,33 @@ export default function CommentLikeButton({ commentId, initialLiked = false, ini
   }, [commentId]);
 
   const toggle = async () => {
+    const previousLiked = liked;
+    const previousCount = count;
+    const beforeToggledLike = !liked;
+    setLiked(beforeToggledLike);
+    setCount((prev) => (beforeToggledLike ? prev + 1 : Math.max(0, prev - 1)));
     try {
-      const res = await api.request(endpoints.toggleCommentLike(commentId), { method: "POST" });
+      const res = await api.request(endpoints.toggleCommentLike(commentId), {
+        method: "POST",
+      });
       const serverCount = res?.data?.likesCount;
       const serverLiked = res?.data?.liked;
       if (typeof serverLiked === "boolean") setLiked(serverLiked);
       if (typeof serverCount === "number") setCount(serverCount);
       else setCount((c) => (liked ? Math.max(0, c - 1) : c + 1));
-    } catch {}
+    } catch (e) {
+      setLiked(previousLiked);
+      setCount(previousCount);
+      alert("Failed to update Comment Like. Please check your connection.");
+    }
   };
 
   return (
-    <button onClick={toggle} className={`px-2 py-1 rounded border text-sm ${liked ? "bg-gray-900 text-white" : ""}`}>
+    <button
+      onClick={toggle}
+      className={`px-2 py-1 rounded border text-sm ${liked ? "bg-gray-900 text-white" : ""}`}
+    >
       👍 {count}
     </button>
   );
 }
-
-
