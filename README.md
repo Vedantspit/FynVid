@@ -4,7 +4,8 @@
   <img src="logof.png" alt="FynVid Logo" width="160"/>
 </p>
 
-[FynVid](https://fynvid.vercel.app/) is a full-stack video streaming platform inspired by YouTube, built using the **MERN** stack with **Kafka** for asynchronous event processing and **NGINX** load balancing across multiple backend instances.
+[FynVid](https://fynvid.vercel.app/) is a full-stack, scalable video-streaming platform built using the **MERN** stack, designed to handle high-concurrency user engagement through an **event-driven architecture**.
+The system integrates **Apache Kafka** for asynchronous processing, **Redis** for rate limiting, and **NGINX** for load balancing across multiple backend instances ensuring performance, scalability, and fault tolerance.
 
 ---
 
@@ -14,7 +15,8 @@
 
 - Node.js + Express.js
 - MongoDB + Mongoose
-- Kafka (Producers/Consumers)
+- Apache Kafka (Producers & Consumers)
+- Redis (Rate Limiting)
 - JWT Authentication
 - NGINX Load Balancer (3 Node.js instances)
 
@@ -47,24 +49,28 @@
 - Upload and manage videos
 - Like, comment, and view videos
 - View events are processed asynchronously via Kafka
+- Cursor-based pagination for infinite scrolling video feeds (O(1) query performance)
 
 ### **Playlists**
 
-- Create, update, delete playlists
-- Add/remove videos
+- Create, update, and delete playlists
+- Add or remove videos dynamically
 
 ### **Likes & Comments**
 
-- Real-time updates
-- Kafka producers trigger notification events
+- Nested comment system
+- Real-time UI updates
+- Kafka producers emit events for engagement actions
 
 ### **Notifications**
 
-- When someone:
-  - Likes your video
-  - Comments
-  - Subscribes
-- Kafka consumers create notifications asynchronously
+Triggered when a user:
+
+- Likes a video
+- Comments on a video
+- Subscribes to a channel
+
+Kafka consumers handle notification creation asynchronously to reduce API latency.
 
 ### **Subscriptions**
 
@@ -98,6 +104,25 @@ FynVid uses **Kafka** to decouple backend operations from event processing.
 | Subscription Consumer | Processes subscriber notifications  |
 
 > Database insertions for likes, comments, and subscriptions still happen directly in controllers. Kafka is used mainly for **notification creation** and **view processing**.
+
+---
+
+## Redis Integration
+
+Redis is used to implement **atomic rate limiting** for critical endpoints:
+
+- Login
+- Likes & comments
+
+---
+
+## Cursor-Based Pagination
+
+Cursor-based pagination ensures:
+
+- O(1) query performance
+- No data skipping during infinite scroll
+- Safe concurrent inserts
 
 ---
 
