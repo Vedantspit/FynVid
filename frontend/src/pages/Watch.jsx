@@ -52,7 +52,7 @@ export default function Watch() {
   const [channel, setChannel] = useState(null);
   useEffect(() => {
     if (fetchedRef.current) return;
-    fetchedRef.current = true; // prevent double fetch in React StrictMode
+    fetchedRef.current = true;
 
     (async () => {
       try {

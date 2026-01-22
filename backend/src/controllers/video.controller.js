@@ -11,17 +11,19 @@ const isValidObjectId = (id) => mongoose.isValidObjectId(id);
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const {
-    page = 1,
-    limit = 10,
+    cursor,
+    limit = 5,
     query = "",
     sortBy = "createdAt",
     sortType = "desc",
     userId,
   } = req.query;
-  const skip = (Math.max(1, +page) - 1) * Math.max(1, +limit);
-  const sort = { [sortBy]: sortType === "asc" ? 1 : -1 };
-
+  const limitNum = Math.max(1, +limit);
   const filter = { isPublished: true };
+  if (cursor) {
+    const operator = sortType == "desc" ? "$lt" : "$gt";
+    filter.createdAt = { [operator]: new Date(cursor) };
+  }
   if (query) {
     const q = query.trim();
     filter.$or = [
@@ -30,28 +32,31 @@ const getAllVideos = asyncHandler(async (req, res) => {
     ];
   }
   if (userId && isValidObjectId(userId)) filter.owner = userId;
-
   const [total, videos] = await Promise.all([
     Video.countDocuments(filter),
     Video.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(Math.max(1, +limit))
+      .sort({ [sortBy]: sortType === "asc" ? 1 : -1 })
+      .limit(limitNum)
       .populate({
         path: "owner",
         select: "fullName userName avatar createdAt",
       }),
   ]);
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { videos, page: +page, limit: +limit, total },
-        "Videos fetched"
-      )
-    );
+  const nextCursor =
+    videos.length > 0 ? videos[videos.length - 1].createdAt : null;
+  const hasNextPage = videos.length === limitNum;
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        videos,
+        nextCursor,
+        hasNextPage,
+      },
+      "Videos fetched",
+    ),
+  );
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
@@ -138,7 +143,7 @@ const updateVideo = asyncHandler(async (req, res) => {
   const updated = await Video.findByIdAndUpdate(
     videoId,
     { $set: updates },
-    { new: true }
+    { new: true },
   ).populate({ path: "owner", select: "fullName userName avatar" });
 
   return res

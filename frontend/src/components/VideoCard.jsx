@@ -2,29 +2,23 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useState } from "react";
 
+// Helper function to capitalize the first letter of each word
+const capitalizeWords = (str) => {
+  if (!str) return "";
+  return str
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 export default function VideoCard({ video }) {
   const thumb = video?.thumbnail || video?.thumbnailUrl || "";
   const title = video?.title || "Untitled";
   const id = video?._id || video?.id;
-  const { api } = useAuth();
-  const [channel, setChannel] = useState(null);
+  const { api, user } = useAuth();
 
   const ownerUsername =
     video?.owner?.userName || video?.owner?.username || video?.ownerName || "";
-
-  useEffect(() => {
-    if (!ownerUsername) return;
-    const fetchChannel = async () => {
-      try {
-        const res = await api.request(`/users/channel/${ownerUsername}`);
-        setChannel(res?.data || null);
-      } catch (err) {
-        console.error("Failed to fetch channel:", err);
-      }
-    };
-    fetchChannel();
-  }, [ownerUsername, api]);
-
   const views = typeof video?.views === "number" ? video.views : 0;
   const getTimeDiff = (dateString) => {
     const uploadedSec = new Date(dateString);
@@ -50,11 +44,12 @@ export default function VideoCard({ video }) {
     }
     return "just now";
   };
+
   return (
     <div className="group block">
       {/* Thumbnail */}
       <Link to={`/watch/${id}`} className="block">
-        <div className="aspect-video w-full overflow-hidden rounded-lg bg-gray-200 flex items-center justify-center">
+        <div className="aspect-video w-full overflow-hidden rounded-lg bg-gray-200 flex items-center justify-center transition-transform group-hover:scale-[1.02]">
           {thumb ? (
             <img
               src={thumb}
@@ -62,7 +57,7 @@ export default function VideoCard({ video }) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-500">
+            <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
               No Thumbnail
             </div>
           )}
@@ -70,19 +65,19 @@ export default function VideoCard({ video }) {
       </Link>
 
       {/* Video Info */}
-      <div className="flex mt-3 items-start gap-3">
+      <div className="flex mt-3 items-start gap-2 sm:gap-3">
         {/* Avatar */}
-        <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center shrink-0">
-          {channel?.avatar ? (
+        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center shrink-0">
+          {video?.owner?.avatar ? (
             <img
-              src={channel.avatar}
+              src={video?.owner?.avatar}
               alt="avatar"
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="text-sm font-medium text-gray-500">
+            <div className="text-sm sm:text-sm font-medium text-gray-500">
               {(
-                channel?.fullName?.[0] ||
+                video?.owner?.fullName?.[0] ||
                 ownerUsername?.[0] ||
                 "U"
               ).toUpperCase()}
@@ -93,24 +88,25 @@ export default function VideoCard({ video }) {
         {/* Title + Meta */}
         <div className="flex-1 min-w-0">
           <Link to={`/watch/${id}`}>
-            <h3 className="font-medium text-gray-900 line-clamp-2 group-hover:underline">
+            <h3 className="font-semibold text-sm sm:text-base text-gray-900 line-clamp-2 group-hover:underline leading-snug">
               {title}
             </h3>
           </Link>
-          <div className="text-sm text-gray-500 mt-1">
+
+          <div className="mt-1">
             {ownerUsername && (
               <Link
                 to={`/channel/${ownerUsername}`}
-                className="hover:underline"
+                className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 block truncate"
               >
-                {ownerUsername}
+                {capitalizeWords(ownerUsername)}
               </Link>
             )}
-             
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <div>{getTimeDiff(video.createdAt)}</div>
-              <div>•</div>
-              <div>{views} views</div>
+
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-500 mt-0.5">
+              <span>{views} views</span>
+              <span>•</span>
+              <span>{getTimeDiff(video.createdAt)}</span>
             </div>
           </div>
         </div>
