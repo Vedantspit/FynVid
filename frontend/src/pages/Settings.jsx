@@ -43,7 +43,7 @@ export default function Settings() {
         body: { fullName, email },
       });
       setUser(res?.data || user);
-      showMessage("✅ Account updated successfully!");
+      showMessage("✔️ Account updated successfully!");
     } catch (e) {
       showMessage(`❌ ${e.message}`);
     } finally {
