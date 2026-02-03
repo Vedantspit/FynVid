@@ -7,6 +7,7 @@ export default function Playlists() {
   const { api, user } = useAuth();
   const [lists, setLists] = useState([]);
   const [openId, setOpenId] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user?._id) return;
@@ -14,10 +15,12 @@ export default function Playlists() {
       try {
         const res = await api.request(endpoints.playlistsByUser(user._id));
         setLists(
-          Array.isArray(res?.data) ? res.data : res?.data?.playlists || []
+          Array.isArray(res?.data) ? res.data : res?.data?.playlists || [],
         );
       } catch (e) {
-        console.error(e);
+        // console.error(e);
+      } finally {
+        setLoading(false);
       }
     })();
   }, [user?._id]);
@@ -31,24 +34,25 @@ export default function Playlists() {
       });
       setLists((prev) => prev.filter((p) => p._id !== playlistId));
     } catch (error) {
-      console.error("Failed to delete playlist:", error);
+      // console.error("Failed to delete playlist:", error);
     }
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-      <div className="text-xl font-semibold mb-6 text-gray-800">
+    <div className="px-3 sm:px-4 lg:px-6 py-4 sm:py-6 max-w-7xl mx-auto">
+      <div className="text-lg sm:text-xl lg:text-2xl font-semibold mb-6 text-gray-900">
         Your playlists
       </div>
-
-      {lists.length === 0 ? (
+      {loading ? (
+        <div className="text-gray-500 text-center py-8">Loading...</div>
+      ) : lists.length === 0 ? (
         <div className="flex justify-center mt-12">
-          <h2 className="text-gray-600 text-lg text-center">
+          <h2 className="text-gray-600 text-lg sm:text-xl text-center">
             No playlists found
           </h2>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
           {lists.map((p) => (
             <div
               key={p._id}
@@ -104,20 +108,20 @@ export default function Playlists() {
                                     await api.request(
                                       endpoints.removeFromPlaylist(
                                         v._id,
-                                        p._id
+                                        p._id,
                                       ),
-                                      { method: "PATCH" }
+                                      { method: "PATCH" },
                                     );
                                     setLists((prevLists) => {
                                       const updated = [...prevLists];
                                       const idx = updated.findIndex(
-                                        (pl) => pl._id === p._id
+                                        (pl) => pl._id === p._id,
                                       );
                                       if (idx === -1) return prevLists;
                                       const oldPlaylist = updated[idx];
                                       const newVideos =
                                         oldPlaylist.videos.filter(
-                                          (vid) => vid._id !== v._id
+                                          (vid) => vid._id !== v._id,
                                         );
                                       updated[idx] = {
                                         ...oldPlaylist,
@@ -126,10 +130,10 @@ export default function Playlists() {
                                       return updated;
                                     });
                                   } catch (error) {
-                                    console.error(
-                                      "Failed to remove video:",
-                                      error
-                                    );
+                                    // console.error(
+                                    //   "Failed to remove video:",
+                                    //   error,
+                                    // );
                                   }
                                 }}
                                 className="absolute top-2 right-2 bg-white border rounded-full px-2 py-1 text-sm opacity-0 group-hover/video:opacity-100 hover:bg-red-100 hover:text-red-600 transition"
@@ -155,17 +159,17 @@ export default function Playlists() {
                                 try {
                                   await api.request(
                                     endpoints.removeFromPlaylist(v._id, p._id),
-                                    { method: "PATCH" }
+                                    { method: "PATCH" },
                                   );
                                   setLists((prevLists) => {
                                     const updated = [...prevLists];
                                     const idx = updated.findIndex(
-                                      (pl) => pl._id === p._id
+                                      (pl) => pl._id === p._id,
                                     );
                                     if (idx === -1) return prevLists;
                                     const oldPlaylist = updated[idx];
                                     const newVideos = oldPlaylist.videos.filter(
-                                      (vid) => vid._id !== v._id
+                                      (vid) => vid._id !== v._id,
                                     );
                                     updated[idx] = {
                                       ...oldPlaylist,
@@ -174,10 +178,10 @@ export default function Playlists() {
                                     return updated;
                                   });
                                 } catch (error) {
-                                  console.error(
-                                    "Failed to remove video:",
-                                    error
-                                  );
+                                  // console.error(
+                                  //   "Failed to remove video:",
+                                  //   error
+                                  // );
                                 }
                               }}
                               className="absolute top-2 right-2 bg-white border rounded-full px-2 py-1 text-sm opacity-0 group-hover/video:opacity-100 hover:bg-red-100 hover:text-red-600 transition"
