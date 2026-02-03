@@ -27,7 +27,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
   const uid = userId && isValidObjectId(userId) ? userId : req.user._id;
   const playlists = await Playlist.find({ owner: uid }).populate({
     path: "videos",
-    select: "title thumbnail duration owner views",
+    select: "title thumbnail duration owner views createdAt",
     populate: { path: "owner", select: "fullName userName avatar" },
   });
   return res
@@ -89,7 +89,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Not authorized");
 
   playlist.videos = playlist.videos.filter(
-    (v) => String(v) !== String(videoId)
+    (v) => String(v) !== String(videoId),
   );
   await playlist.save();
   const populated = await Playlist.findById(playlistId).populate({
