@@ -109,7 +109,7 @@ const getVideoById = asyncHandler(async (req, res) => {
   });
   if (!video) throw new ApiError(404, "Video not found");
 
-  // ✅ Publish event to Kafka instead of updating DB directly
+  // Publish event to Kafka instead of updating DB directly
   await publishVideoViewEvent(videoId, req.user?._id);
 
   return res
