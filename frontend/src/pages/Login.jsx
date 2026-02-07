@@ -28,7 +28,11 @@ export default function Login() {
 
     try {
       await login({ ...form, email });
-      navigate("/");
+      const redirectUrl = sessionStorage.getItem("redirectUrl");
+      if (redirectUrl) {
+        sessionStorage.removeItem("redirectUrl");
+        navigate(redirectUrl);
+      } else navigate("/");
     } catch (e) {
       if (e.status === 401) {
         setError("Wrong email or password !!");
@@ -96,24 +100,26 @@ export default function Login() {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               disabled={loading}
             />
-            <span
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-700"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => {
-                const input = passwordRef.current;
-                if (!input) return;
-                setShowPassword((prev) => !prev);
-                requestAnimationFrame(() => {
-                  input.focus();
-                  input.setSelectionRange(
-                    input.value.length,
-                    input.value.length,
-                  );
-                });
-              }}
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </span>
+            {form.password.length > 0 && (
+              <span
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-700"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  const input = passwordRef.current;
+                  if (!input) return;
+                  setShowPassword((prev) => !prev);
+                  requestAnimationFrame(() => {
+                    input.focus();
+                    input.setSelectionRange(
+                      input.value.length,
+                      input.value.length,
+                    );
+                  });
+                }}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </span>
+            )}
           </div>
         </div>
         <button
